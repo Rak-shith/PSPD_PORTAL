@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import Sidebar from '../../components/layout/Sidebar';
 import { getUnits } from '../../api/holidays.api';
 import api from '../../api/axios';
 
@@ -33,46 +32,43 @@ export default function HolidaysAdmin() {
   };
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="flex-1 p-6 max-w-xl">
-        <h1 className="text-2xl font-bold mb-4">Create Holiday</h1>
+    <div className="max-w-xl">
+      <h1 className="text-2xl font-bold mb-4">Create Holiday</h1>
 
-        <input
-          type="date"
-          className="border p-2 w-full mb-2"
-          value={date}
-          onChange={e => setDate(e.target.value)}
-        />
+      <input
+        type="date"
+        className="border p-2 w-full mb-2"
+        value={date}
+        onChange={e => setDate(e.target.value)}
+      />
 
-        <input
-          className="border p-2 w-full mb-4"
-          placeholder="Holiday name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-        />
+      <input
+        className="border p-2 w-full mb-4"
+        placeholder="Holiday name"
+        value={name}
+        onChange={e => setName(e.target.value)}
+      />
 
-        <div className="mb-4">
-          <p className="font-medium mb-2">Units</p>
-          {units.map(u => (
-            <label key={u.id} className="block">
-              <input
-                type="checkbox"
-                checked={selectedUnits.includes(u.id)}
-                onChange={() => toggleUnit(u.id)}
-              />
-              <span className="ml-2">{u.name}</span>
-            </label>
-          ))}
-        </div>
-
-        <button
-          onClick={submit}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Create Holiday
-        </button>
+      <div className="mb-4">
+        <p className="font-medium mb-2">Units</p>
+        {units.map(u => (
+          <label key={u.id} className="block">
+            <input
+              type="checkbox"
+              checked={selectedUnits.includes(u.id)}
+              onChange={() => toggleUnit(u.id)}
+            />
+            <span className="ml-2">{u.name}</span>
+          </label>
+        ))}
       </div>
+
+      <button
+        onClick={submit}
+        className="bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        Create Holiday
+      </button>
     </div>
   );
 }

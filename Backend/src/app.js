@@ -2,21 +2,23 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL, // Updated to match your frontend URL
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-// app.use('/api', rateLimit({
-//   windowMs: 15 * 60 * 1000,
-//   max: 1000
-// }));
-// app.use(cors({
-//   origin: ['https://portal.itc.com'],
-//   credentials: true
-// }));
+app.use('/api', rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000
+}));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'Backend is running' });
@@ -24,26 +26,16 @@ app.get('/api/health', (req, res) => {
 
 const authMiddleware = require('./middleware/auth.middleware');
 const errorMiddleware = require('./middleware/error.middleware')
+const apiRoutes = require('./routes');
 
-const authRoutes = require('./modules/auth/auth.routes');
-const categoryRoutes = require('./modules/categories/categories.routes');
-const applicationRoutes = require('./modules/applications/applications.routes');
-const favoriteRoutes = require('./modules/favorites/favorites.routes');
-const accessRequestRoutes = require('./modules/access-requests/accessRequests.routes');
-const contactRoutes = require('./modules/contacts/contacts.routes');
-const supportRoutes = require('./modules/support/support.routes');
-const unitRoutes = require('./modules/units/units.routes');
-const holidayRoutes = require('./modules/holidays/holidays.routes');
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'Backend is running' });
+});
 
-app.use('/api/holidays', holidayRoutes);
-app.use('/api/units', unitRoutes);
-app.use('/api/contacts', contactRoutes);
-app.use('/api/support', supportRoutes);
-app.use('/api/access-requests', accessRequestRoutes);
-app.use('/api/favorites', favoriteRoutes);
-app.use('/api/applications', applicationRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/auth', authRoutes);
+// API Routes
+app.use('/api', apiRoutes);
+
+// Middleware Handling
 app.use(authMiddleware);
 app.use(errorMiddleware);
 

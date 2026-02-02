@@ -1,9 +1,9 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './store/auth.store.jsx';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './store/auth.store.jsx';
+import ProtectedRoute from './components/layout/ProtectedRoute';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Favorites from './pages/Favorites';
-import ProtectedRoute from './components/layout/ProtectedRoute';
 import HRUpdates from './pages/HRUpdates';
 import HRAdminUpdates from './pages/admin/HRUpdates';
 import HolidayCalendar from './pages/HolidayCalendar';
@@ -19,83 +19,33 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* Public routes */}
           <Route path="/login" element={<Login />} />
 
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          } />
+          {/* Protected routes wrapped with Layout */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/favorites" element={<Favorites />} />
+            <Route path="/hr-updates" element={<HRUpdates />} />
+            <Route path="/holidays" element={<HolidayCalendar />} />
+            <Route path="/contacts" element={<Contacts />} />
+            <Route path="/support" element={<Support />} />
+          </Route>
 
-          <Route path="/favorites" element={
-            <ProtectedRoute>
-              <Favorites />
-            </ProtectedRoute>
-          } />
+          {/* Admin routes */}
+          <Route element={<ProtectedRoute roles={['HR_ADMIN']} />}>
+            <Route path="/admin/hr-updates" element={<HRAdminUpdates />} />
+            <Route path="/admin/holidays" element={<HolidaysAdmin />} />
+          </Route>
 
-          <Route path="/hr-updates" element={
-            <ProtectedRoute>
-              <HRUpdates />
-            </ProtectedRoute>
-          } />
+          <Route element={<ProtectedRoute roles={['IT_ADMIN']} />}>
+            <Route path="/admin/categories" element={<CategoriesAdmin />} />
+            <Route path="/admin/applications" element={<ApplicationsAdmin />} />
+            <Route path="/admin/access-requests" element={<AccessRequestsAdmin />} />
+          </Route>
 
-          <Route path="/admin/hr-updates" element={
-            <ProtectedRoute>
-              <HRAdminUpdates />
-            </ProtectedRoute>
-          } />
-
-          <Route
-            path="/holidays"
-            element={
-              <ProtectedRoute>
-                <HolidayCalendar />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route path="/admin/categories" element={
-            <ProtectedRoute roles={['IT_ADMIN']}>
-              <CategoriesAdmin />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/admin/applications" element={
-            <ProtectedRoute roles={['IT_ADMIN']}>
-              <ApplicationsAdmin />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/admin/access-requests" element={
-            <ProtectedRoute roles={['IT_ADMIN']}>
-              <AccessRequestsAdmin />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/admin/holidays" element={
-            <ProtectedRoute roles={['HR_ADMIN']}>
-              <HolidaysAdmin />
-            </ProtectedRoute>
-          } />
-
-          <Route
-            path="/contacts"
-            element={
-              <ProtectedRoute>
-                <Contacts />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/support"
-            element={
-              <ProtectedRoute>
-                <Support />
-              </ProtectedRoute>
-            }
-          />
-
+          {/* Fallback route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

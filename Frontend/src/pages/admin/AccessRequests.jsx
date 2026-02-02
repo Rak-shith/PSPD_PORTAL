@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import Sidebar from '../../components/layout/Sidebar';
 import {
   getAccessRequests,
   updateAccessRequest
@@ -22,45 +21,42 @@ export default function AccessRequestsAdmin() {
   };
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="flex-1 p-6">
-        <h1 className="text-2xl font-bold mb-4">Access Requests</h1>
+    <div className="">
+      <h1 className="text-2xl font-bold mb-4">Access Requests</h1>
 
-        <table className="w-full bg-white rounded shadow">
-          <thead>
-            <tr className="border-b">
-              <th className="p-2">User</th>
-              <th className="p-2">Application</th>
-              <th className="p-2">Reason</th>
-              <th className="p-2">Status</th>
+      <table className="w-full bg-white rounded shadow">
+        <thead>
+          <tr className="border-b">
+            <th className="p-2">User</th>
+            <th className="p-2">Application</th>
+            <th className="p-2">Reason</th>
+            <th className="p-2">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {requests.map(r => (
+            <tr key={r.id} className="border-b">
+              <td className="p-2">{r.requested_by}</td>
+              <td className="p-2">{r.application}</td>
+              <td className="p-2">{r.reason}</td>
+              <td className="p-2 space-x-2">
+                <button
+                  onClick={() => update(r.id, 'APPROVED')}
+                  className="text-green-600"
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={() => update(r.id, 'REJECTED')}
+                  className="text-red-600"
+                >
+                  Reject
+                </button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {requests.map(r => (
-              <tr key={r.id} className="border-b">
-                <td className="p-2">{r.requested_by}</td>
-                <td className="p-2">{r.application}</td>
-                <td className="p-2">{r.reason}</td>
-                <td className="p-2 space-x-2">
-                  <button
-                    onClick={() => update(r.id, 'APPROVED')}
-                    className="text-green-600"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => update(r.id, 'REJECTED')}
-                    className="text-red-600"
-                  >
-                    Reject
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

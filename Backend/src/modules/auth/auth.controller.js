@@ -28,8 +28,14 @@ exports.login = async (req, res) => {
       { expiresIn: '8h' }
     );
 
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Lax',
+      maxAge: 8 * 60 * 60 * 1000 // 8 hours
+    });
+
     res.json({
-      token,
       user: {
         id: user.id,
         email: user.email,
@@ -42,4 +48,3 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Login failed' });
   }
 };
-    

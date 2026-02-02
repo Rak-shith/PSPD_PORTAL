@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import Sidebar from '../../components/layout/Sidebar';
 import { createHRUpdate } from '../../api/hrUpdates.api';
 
 export default function HRAdminUpdates() {
@@ -37,60 +36,56 @@ export default function HRAdminUpdates() {
   };
 
   return (
-    <div className="flex">
-      <Sidebar />
+    <div className="max-w-2xl">
+      <h1 className="text-2xl font-bold mb-4">
+        Create HR Update
+      </h1>
 
-      <div className="flex-1 p-6 max-w-2xl">
-        <h1 className="text-2xl font-bold mb-4">
-          Create HR Update
-        </h1>
+      <div className="space-y-4">
+        <input
+          className="border p-2 w-full"
+          placeholder="Title"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+        />
 
-        <div className="space-y-4">
+        <textarea
+          className="border p-2 w-full"
+          placeholder="Content"
+          rows={5}
+          value={content}
+          onChange={e => setContent(e.target.value)}
+        />
+
+        <div className="flex gap-4">
           <input
+            type="date"
             className="border p-2 w-full"
-            placeholder="Title"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
+            value={startDate}
+            onChange={e => setStartDate(e.target.value)}
           />
-
-          <textarea
-            className="border p-2 w-full"
-            placeholder="Content"
-            rows={5}
-            value={content}
-            onChange={e => setContent(e.target.value)}
-          />
-
-          <div className="flex gap-4">
-            <input
-              type="date"
-              className="border p-2 w-full"
-              value={startDate}
-              onChange={e => setStartDate(e.target.value)}
-            />
-
-            <input
-              type="date"
-              className="border p-2 w-full"
-              value={endDate}
-              onChange={e => setEndDate(e.target.value)}
-            />
-          </div>
 
           <input
-            type="file"
-            multiple
-            onChange={e => setFiles(e.target.files)}
+            type="date"
+            className="border p-2 w-full"
+            value={endDate}
+            onChange={e => setEndDate(e.target.value)}
           />
-
-          <button
-            onClick={submit}
-            disabled={loading}
-            className="bg-blue-600 text-white px-4 py-2 rounded"
-          >
-            {loading ? 'Submitting...' : 'Submit'}
-          </button>
         </div>
+
+        <input
+          type="file"
+          multiple
+          onChange={e => setFiles(e.target.files)}
+        />
+
+        <button
+          onClick={submit}
+          disabled={loading}
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          {loading ? 'Submitting...' : 'Submit'}
+        </button>
       </div>
     </div>
   );

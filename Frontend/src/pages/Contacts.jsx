@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import Sidebar from '../components/layout/Sidebar';
 import { getContacts } from '../api/contacts.api';
 
 export default function Contacts() {
@@ -16,45 +15,84 @@ export default function Contacts() {
   }, []);
 
   return (
-    <div className="flex">
-      <Sidebar />
+    <div className="bg-itc-bg p-6 rounded-lg">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-h1 font-semibold text-itc-text-primary">
+          Important Contacts
+        </h1>
+      </div>
 
-      <div className="flex-1 p-6">
-        <h1 className="text-2xl font-bold mb-4">Important Contacts</h1>
-
+      {/* Search */}
+      <div className="relative mb-6 max-w-md">
+        <span className="absolute inset-y-0 left-3 flex items-center text-itc-text-secondary">
+          🔍
+        </span>
         <input
-          className="border p-2 mb-4 w-full max-w-md"
-          placeholder="Search by name / department"
+          className="w-full border border-itc-border rounded-md pl-9 pr-3 py-2 text-body
+                     focus:outline-none focus:ring-2 focus:ring-itc-blue/30
+                     bg-itc-surface"
+          placeholder="Search by name, designation or department"
           value={search}
           onChange={e => setSearch(e.target.value)}
           onKeyUp={load}
         />
+      </div>
 
-        <table className="w-full bg-white rounded shadow">
-          <thead>
-            <tr className="border-b">
-              <th className="p-2 text-left">Name</th>
-              <th className="p-2 text-left">Designation</th>
-              <th className="p-2 text-left">Department</th>
-              <th className="p-2 text-left">Email</th>
-              <th className="p-2 text-left">Phone</th>
+      {/* Table */}
+      <div className="bg-itc-surface border border-itc-border rounded-md overflow-hidden shadow-sm">
+        <table className="w-full text-body">
+          <thead className="bg-gray-50">
+            <tr className="border-b border-itc-border">
+              <th className="px-4 py-3 text-left text-muted font-medium">Name</th>
+              <th className="px-4 py-3 text-left text-muted font-medium">Designation</th>
+              <th className="px-4 py-3 text-left text-muted font-medium">Department</th>
+              <th className="px-4 py-3 text-left text-muted font-medium">Email</th>
+              <th className="px-4 py-3 text-left text-muted font-medium">Phone</th>
             </tr>
           </thead>
+
           <tbody>
             {contacts.map(c => (
-              <tr key={c.id} className="border-b">
-                <td className="p-2">{c.name}</td>
-                <td className="p-2">{c.designation}</td>
-                <td className="p-2">{c.department}</td>
-                <td className="p-2">{c.email}</td>
-                <td className="p-2">{c.phone}</td>
+              <tr
+                key={c.id}
+                className="border-b last:border-b-0 hover:bg-itc-bg transition"
+              >
+                <td className="px-4 py-3 font-medium">
+                  {c.name}
+                </td>
+                <td className="px-4 py-3 text-itc-text-secondary">
+                  {c.designation}
+                </td>
+                <td className="px-4 py-3 text-itc-text-secondary">
+                  {c.department}
+                </td>
+                <td className="px-4 py-3">
+                  <a
+                    href={`mailto:${c.email}`}
+                    className="text-itc-blue hover:underline"
+                  >
+                    {c.email}
+                  </a>
+                </td>
+                <td className="px-4 py-3">
+                  <a
+                    href={`tel:${c.phone}`}
+                    className="text-itc-blue hover:underline"
+                  >
+                    {c.phone}
+                  </a>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
 
+        {/* Empty State */}
         {contacts.length === 0 && (
-          <p className="text-gray-500 mt-4">No contacts found.</p>
+          <div className="p-8 text-center text-itc-text-secondary">
+            No contacts found matching your search.
+          </div>
         )}
       </div>
     </div>
