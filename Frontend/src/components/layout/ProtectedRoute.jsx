@@ -2,14 +2,24 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../store/auth.store.jsx';
 import Layout from './Layout.jsx';
 
-// Wrapper component that includes the Layout for all protected routes
 const ProtectedLayout = ({ children, roles }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
+  // ⏳ WAIT until auth is resolved
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted">Loading...</p>
+      </div>
+    );
+  }
+
+  // ❌ Auth resolved → not logged in
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
+  // 🔐 Role check
   if (roles && !roles.includes(user.role)) {
     return <Navigate to="/" replace />;
   }
@@ -17,7 +27,6 @@ const ProtectedLayout = ({ children, roles }) => {
   return <Layout>{children}</Layout>;
 };
 
-// Route wrapper that uses the ProtectedLayout
 const ProtectedRoute = ({ children, roles }) => {
   return (
     <ProtectedLayout roles={roles}>

@@ -13,6 +13,7 @@ import AccessRequestsAdmin from './pages/admin/AccessRequests';
 import HolidaysAdmin from './pages/admin/Holidays';
 import Contacts from './pages/Contacts';
 import Support from './pages/Support';
+import AuthRedirect from './pages/AuthRedirect.jsx';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
+          <Route path="/redirect" element={<AuthRedirect />} />
 
           {/* Protected routes wrapped with Layout */}
           <Route element={<ProtectedRoute />}>
