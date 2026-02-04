@@ -1,21 +1,11 @@
-import { useEffect, useState } from 'react';
-import { getFavorites } from '../api/favorites.api';
+import { useApplications } from '../store/applications.store';
 import ApplicationCard from '../components/cards/ApplicationCard';
 
 export default function Favorites() {
-  const [favorites, setFavorites] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { apps, favoriteIds, loading, refreshFavorites } = useApplications();
 
-  const loadFavorites = async () => {
-    setLoading(true);
-    const res = await getFavorites();
-    setFavorites(res.data);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    loadFavorites();
-  }, []);
+  // Filter apps to only show favorites
+  const favorites = apps.filter(app => favoriteIds.includes(app.id));
 
   return (
     <div className="bg-itc-bg p-6 rounded-lg">
@@ -39,7 +29,7 @@ export default function Favorites() {
       {/* Empty */}
       {!loading && favorites.length === 0 && (
         <div className="bg-itc-surface border border-itc-border rounded-md p-8 text-center text-itc-text-secondary">
-          You haven’t added any applications to favorites yet.
+          You haven't added any applications to favorites yet.
         </div>
       )}
 
@@ -47,16 +37,10 @@ export default function Favorites() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {favorites.map(app => (
           <ApplicationCard
-            key={app.application_id}
-            app={{
-              id: app.application_id,
-              name: app.name,
-              description: app.description,
-              url: app.url,
-              category: app.category
-            }}
+            key={app.id}
+            app={app}
             isFavorite={true}
-            onChange={loadFavorites}
+            onChange={refreshFavorites}
           />
         ))}
       </div>

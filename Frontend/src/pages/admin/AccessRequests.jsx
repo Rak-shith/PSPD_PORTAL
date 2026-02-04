@@ -3,8 +3,10 @@ import {
   getAccessRequests,
   updateAccessRequest
 } from '../../api/accessRequests.api';
+import { useToast } from '../../store/toast.store';
 
 export default function AccessRequestsAdmin() {
+  const { showSuccess } = useToast();
   const [requests, setRequests] = useState([]);
   const [loadingId, setLoadingId] = useState(null);
 
@@ -21,6 +23,7 @@ export default function AccessRequestsAdmin() {
       setLoadingId(id);
       await updateAccessRequest(id, status);
       load();
+      showSuccess(`Access request ${status.toLowerCase()} successfully!`);
     } finally {
       setLoadingId(null);
     }

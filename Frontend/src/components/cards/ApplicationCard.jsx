@@ -40,7 +40,15 @@ export default function ApplicationCard({ app, isFavorite, onChange }) {
       <div className="w-12 h-12 rounded-md bg-itc-bg
                       flex items-center justify-center
                       text-itc-blue font-semibold mb-4">
-        {app.name.charAt(0).toUpperCase()}
+        {app.image_url || app.icon ? (
+          <img
+            src={app.image_url || app.icon}
+            alt={app.name}
+            className="w-8 h-8 object-contain"
+          />
+        ) : (
+          app.name.charAt(0).toUpperCase()
+        )}
       </div>
 
       {/* Content */}
