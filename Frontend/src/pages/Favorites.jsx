@@ -18,16 +18,33 @@ export default function Favorites() {
   }, []);
 
   return (
-    <div className="">
-      <h1 className="text-2xl font-bold mb-4">My Favorites</h1>
+    <div className="bg-itc-bg p-6 rounded-lg">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-h1 font-semibold text-itc-text-primary">
+          My Favorites
+        </h1>
+        <p className="text-muted mt-1">
+          Quick access to your frequently used applications
+        </p>
+      </div>
 
-      {loading && <p>Loading...</p>}
-
-      {!loading && favorites.length === 0 && (
-        <p className="text-gray-500">No favorites added yet.</p>
+      {/* Loading */}
+      {loading && (
+        <div className="text-itc-text-secondary">
+          Loading favorites…
+        </div>
       )}
 
-      <div className="grid grid-cols-4 gap-4">
+      {/* Empty */}
+      {!loading && favorites.length === 0 && (
+        <div className="bg-itc-surface border border-itc-border rounded-md p-8 text-center text-itc-text-secondary">
+          You haven’t added any applications to favorites yet.
+        </div>
+      )}
+
+      {/* Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {favorites.map(app => (
           <ApplicationCard
             key={app.application_id}
@@ -35,7 +52,8 @@ export default function Favorites() {
               id: app.application_id,
               name: app.name,
               description: app.description,
-              url: app.url
+              url: app.url,
+              category: app.category
             }}
             isFavorite={true}
             onChange={loadFavorites}

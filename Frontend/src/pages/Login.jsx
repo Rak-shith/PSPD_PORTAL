@@ -15,7 +15,7 @@ export default function Login() {
   // If user is already logged in (in our app state), redirect to home
   useEffect(() => {
     if (user) {
-      navigate('/', { replace: true });
+      navigate('/home', { replace: true });
     }
   }, [user, navigate]);
 
@@ -25,7 +25,7 @@ export default function Login() {
       setLoading(true);
       const res = await api.post('/auth/login', { email });
       login(res.data);
-      window.location.href = '/';
+      window.location.href = '/home';
     } finally {
       setLoading(false);
     }
@@ -35,7 +35,7 @@ export default function Login() {
     instance
       .loginRedirect({
         ...loginRequest,
-        redirectUri: 'http://localhost:5173/redirect', // Explicitly force the correct URI
+        redirectUri: 'http://localhost:5173/login/redirect', // Explicitly force the correct URI
         prompt: 'select_account',
       })
       .catch((error) => console.log(error));

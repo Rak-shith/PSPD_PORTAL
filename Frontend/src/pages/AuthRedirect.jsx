@@ -29,7 +29,7 @@ export default function AuthRedirect() {
                 await new Promise(resolve => setTimeout(resolve, 50));
 
                 // Now navigate
-                navigate('/', { replace: true });
+                navigate('/home', { replace: true });
             } catch (error) {
                 console.error('Login failed:', error);
                 navigate('/login', { replace: true });

@@ -27,4 +27,17 @@
     --radius-sm: 4px;
     --radius-md: 6px;
     --radius-lg: 10px;
+
+    /* Animations */
+    --animate-fadeIn: fadeIn 0.15s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }

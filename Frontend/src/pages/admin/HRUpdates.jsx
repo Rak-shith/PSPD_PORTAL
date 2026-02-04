@@ -10,6 +10,8 @@ export default function HRAdminUpdates() {
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
+    if (!title || !content) return;
+
     const formData = new FormData();
     formData.append('title', title);
     formData.append('content', content);
@@ -36,56 +38,106 @@ export default function HRAdminUpdates() {
   };
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold mb-4">
-        Create HR Update
-      </h1>
+    <div className="bg-itc-bg p-6 rounded-lg max-w-3xl">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-h1 font-semibold text-itc-text-primary">
+          HR Updates Management
+        </h1>
+        <p className="text-muted mt-1">
+          Publish important HR announcements for employees
+        </p>
+      </div>
 
-      <div className="space-y-4">
-        <input
-          className="border p-2 w-full"
-          placeholder="Title"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-        />
-
-        <textarea
-          className="border p-2 w-full"
-          placeholder="Content"
-          rows={5}
-          value={content}
-          onChange={e => setContent(e.target.value)}
-        />
-
-        <div className="flex gap-4">
+      {/* Form */}
+      <div className="bg-itc-surface border border-itc-border rounded-md p-6 shadow-sm space-y-5">
+        {/* Title */}
+        <div>
+          <label className="block text-muted mb-1">
+            Update Title
+          </label>
           <input
-            type="date"
-            className="border p-2 w-full"
-            value={startDate}
-            onChange={e => setStartDate(e.target.value)}
-          />
-
-          <input
-            type="date"
-            className="border p-2 w-full"
-            value={endDate}
-            onChange={e => setEndDate(e.target.value)}
+            className="w-full border border-itc-border rounded-md px-3 py-2
+                       focus:outline-none focus:ring-2 focus:ring-itc-blue/30"
+            placeholder="Eg: New Leave Policy Update"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
           />
         </div>
 
-        <input
-          type="file"
-          multiple
-          onChange={e => setFiles(e.target.files)}
-        />
+        {/* Content */}
+        <div>
+          <label className="block text-muted mb-1">
+            Update Content
+          </label>
+          <textarea
+            rows={5}
+            className="w-full border border-itc-border rounded-md px-3 py-2
+                       focus:outline-none focus:ring-2 focus:ring-itc-blue/30"
+            placeholder="Enter detailed information for employees"
+            value={content}
+            onChange={e => setContent(e.target.value)}
+          />
+        </div>
 
-        <button
-          onClick={submit}
-          disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          {loading ? 'Submitting...' : 'Submit'}
-        </button>
+        {/* Dates */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-muted mb-1">
+              Visible From
+            </label>
+            <input
+              type="date"
+              className="w-full border border-itc-border rounded-md px-3 py-2
+                         focus:outline-none focus:ring-2 focus:ring-itc-blue/30"
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-muted mb-1">
+              Expiry Date
+            </label>
+            <input
+              type="date"
+              className="w-full border border-itc-border rounded-md px-3 py-2
+                         focus:outline-none focus:ring-2 focus:ring-itc-blue/30"
+              value={endDate}
+              onChange={e => setEndDate(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Attachments */}
+        <div>
+          <label className="block text-muted mb-1">
+            Attachments (PDF / Images)
+          </label>
+          <input
+            type="file"
+            multiple
+            className="block w-full text-sm text-itc-text-secondary
+                       file:mr-4 file:py-2 file:px-4
+                       file:rounded-md file:border-0
+                       file:bg-itc-bg file:text-itc-text-primary
+                       hover:file:bg-gray-100 transition"
+            onChange={e => setFiles(e.target.files)}
+          />
+        </div>
+
+        {/* Submit */}
+        <div className="text-right pt-2">
+          <button
+            onClick={submit}
+            disabled={loading}
+            className="bg-itc-blue hover:bg-itc-blue-dark
+                       text-white px-6 py-2 rounded-md
+                       font-medium transition disabled:opacity-60"
+          >
+            {loading ? 'Publishing…' : 'Publish Update'}
+          </button>
+        </div>
       </div>
     </div>
   );

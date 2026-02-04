@@ -88,165 +88,169 @@ export default function HolidayCalendar() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Holiday Calendar</h1>
-          <p className="text-gray-500 mt-1 font-medium">Plan your time and view company-wide holidays.</p>
+  <div className="space-y-6 max-w-7xl mx-auto bg-itc-bg p-6 rounded-lg">
+    {/* Header */}
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <h1 className="text-h1 font-semibold text-itc-text-primary">
+          Holiday Calendar
+        </h1>
+        <p className="text-muted mt-1">
+          View unit-wise holidays and plan ahead
+        </p>
+      </div>
+
+      {/* Unit Selector */}
+      <select
+        className="bg-itc-surface border border-itc-border rounded-md px-4 py-2
+                   font-medium text-itc-text-primary
+                   focus:outline-none focus:ring-2 focus:ring-itc-blue/30"
+        value={selectedUnit}
+        onChange={e => setSelectedUnit(e.target.value)}
+      >
+        {units.map(unit => (
+          <option key={unit.id} value={unit.id}>
+            {unit.name}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      {/* Calendar */}
+      <div className="lg:col-span-3 bg-itc-surface border border-itc-border rounded-md shadow-sm">
+        {/* Calendar Header */}
+        <div className="px-5 py-4 border-b border-itc-border flex items-center justify-between bg-gray-50">
+          <div className="flex items-center gap-4">
+            <h2 className="text-h2 font-medium">
+              {formatMonth}
+            </h2>
+            <button
+              onClick={goToToday}
+              className="text-sm text-itc-blue font-medium hover:underline"
+            >
+              Today
+            </button>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={prevMonth}
+              className="px-3 py-1 border border-itc-border rounded-md text-itc-text-secondary hover:bg-itc-bg"
+            >
+              ◀
+            </button>
+            <button
+              onClick={nextMonth}
+              className="px-3 py-1 border border-itc-border rounded-md text-itc-text-secondary hover:bg-itc-bg"
+            >
+              ▶
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center space-x-3">
-          <div className="relative">
-            <select
-              className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2.5 pr-10 font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
-              value={selectedUnit}
-              onChange={e => setSelectedUnit(e.target.value)}
+        {/* Weekdays */}
+        <div className="grid grid-cols-7 bg-itc-bg border-b border-itc-border">
+          {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
+            <div
+              key={d}
+              className="text-center text-muted text-sm font-medium py-2"
             >
-              {units.map(unit => (
-                <option key={unit.id} value={unit.id}>
-                  {unit.name}
-                </option>
-              ))}
-            </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              {d}
             </div>
-          </div>
+          ))}
+        </div>
+
+        {/* Days */}
+        <div className="grid grid-cols-7 gap-px bg-itc-border">
+          {days.map((day, idx) => {
+            if (!day) {
+              return <div key={idx} className="bg-itc-bg h-20 md:h-24" />;
+            }
+
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const isHoliday = holidayMap[dateStr];
+            const isToday =
+              today.getDate() === day &&
+              today.getMonth() === month &&
+              today.getFullYear() === year;
+
+            return (
+              <div
+                key={idx}
+                className={`
+                  h-20 md:h-24 p-2 border border-itc-border relative
+                  ${isHoliday ? 'bg-red-50' : 'bg-itc-surface'}
+                  ${isToday ? 'ring-2 ring-itc-blue/40' : ''}
+                `}
+              >
+                {/* Holiday accent bar */}  
+                {isHoliday && (
+                  <span className="absolute left-0 top-0 h-full w-1 bg-red-400 rounded-l" />
+                )}
+                <div className="flex justify-between items-center mb-1">
+                  <span
+                    className={`text-sm font-semibold ${
+                      isToday ? 'text-itc-blue' : 'text-itc-text-primary'
+                    }`}
+                  >
+                    {day}
+                  </span>
+                </div>
+
+                {isHoliday && (
+                  <div className="mt-1 text-xs text-red-700 bg-red-50
+                                  border border-red-100 rounded px-1 py-0.5">
+                    {isHoliday}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Legend */}
+        <div className="px-5 py-3 bg-gray-50 border-t border-itc-border flex gap-6 text-xs text-muted">
+          <span className="flex items-center gap-2">
+            <span className="w-3 h-3 bg-red-100 border border-red-200 rounded"></span>
+            Holiday
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="w-3 h-3 bg-blue-200 rounded"></span>
+            Today
+          </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Main Calendar Card */}
-        <div className="lg:col-span-3 bg-white rounded-2xl shadow-xl shadow-blue-500/5 border border-gray-100 overflow-hidden">
-          {/* Calendar Header */}
-          <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
-            <div className="flex items-center space-x-4">
-              <h2 className="text-xl font-bold text-gray-800">{formatMonth}</h2>
-              <button
-                onClick={goToToday}
-                className="px-3 py-1 text-xs font-bold text-blue-600 bg-blue-50 rounded-full hover:bg-blue-100 transition-colors"
-              >
-                Today
-              </button>
-            </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={prevMonth}
-                className="p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-gray-200 text-gray-600 shadow-sm hover:shadow"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button
-                onClick={nextMonth}
-                className="p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-gray-200 text-gray-600 shadow-sm hover:shadow"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {/* Calendar Body */}
-          <div className="p-6">
-            <div className="grid grid-cols-7 mb-4">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="text-center text-sm font-bold text-gray-400 uppercase tracking-widest py-2">
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-7 gap-px bg-gray-100 rounded-xl overflow-hidden border border-gray-100 shadow-inner">
-              {days.map((day, idx) => {
-                if (!day) return <div key={idx} className="bg-gray-50 h-24 md:h-32" />;
-
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const isHoliday = holidayMap[dateStr];
-                const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
-
-                return (
-                  <div
-                    key={idx}
-                    className={`bg-white h-24 md:h-32 p-2 relative group transition-all duration-300 hover:z-10 hover:shadow-2xl hover:scale-[1.02] ${isToday ? 'bg-blue-50/30' : ''
-                      }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className={`text-sm font-bold flex items-center justify-center w-8 h-8 rounded-full transition-colors ${isToday ? 'bg-blue-600 text-white animate-pulse' : 'text-gray-800'
-                        }`}>
-                        {day}
-                      </span>
-                    </div>
-
-                    {isHoliday && (
-                      <div className="mt-2 group-hover:block transition-all duration-300">
-                        <div className="bg-red-50 text-red-600 text-[10px] md:text-xs p-1.5 rounded-lg font-bold border border-red-100 leading-tight">
-                          <div className="flex items-center mb-0.5">
-                            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-                            </svg>
-                            Holiday
-                          </div>
-                          <span className="line-clamp-2">{isHoliday}</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center space-x-6">
-            <div className="flex items-center text-xs font-bold text-gray-500 uppercase tracking-wider">
-              <span className="w-3 h-3 bg-red-100 border border-red-200 rounded-full mr-2"></span>
-              Public Holiday
-            </div>
-            <div className="flex items-center text-xs font-bold text-gray-500 uppercase tracking-wider">
-              <span className="w-3 h-3 bg-blue-600 rounded-full mr-2"></span>
-              Today
-            </div>
-          </div>
+      {/* Upcoming Holidays */}
+      <div className="bg-itc-surface border border-itc-border rounded-md shadow-sm">
+        <div className="px-4 py-3 border-b border-itc-border">
+          <h3 className="font-medium text-itc-text-primary">
+            Upcoming Holidays
+          </h3>
         </div>
 
-        {/* Side Panel: Upcoming Holidays */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl shadow-xl shadow-blue-500/5 border border-gray-100 overflow-hidden">
-            <div className="p-5 border-b border-gray-50 flex items-center justify-between">
-              <h3 className="font-bold text-gray-900">Upcoming Holidays</h3>
-              <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="p-2">
-              {upcomingHolidays.length > 0 ? (
-                upcomingHolidays.map((h, i) => (
-                  <div key={i} className="p-3 hover:bg-gray-50 rounded-xl transition-colors group flex items-start space-x-4 border-b last:border-0 border-gray-50">
-                    <div className="flex-shrink-0 w-12 h-12 bg-blue-50 rounded-xl flex flex-col items-center justify-center text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
-                      <span className="text-[10px] font-black uppercase">{new Date(h.holiday_date).toLocaleString('default', { month: 'short' })}</span>
-                      <span className="text-lg font-black leading-none">{new Date(h.holiday_date).getDate()}</span>
-                    </div>
-                    <div className="flex-1 overflow-hidden">
-                      <h4 className="text-sm font-extrabold text-gray-900 truncate group-hover:text-blue-600 transition-colors">{h.name}</h4>
-                      <p className="text-xs font-bold text-gray-400 mt-0.5">
-                        {new Date(h.holiday_date).toLocaleDateString('default', { weekday: 'long' })}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="py-10 text-center text-gray-400">
-                  <p className="text-sm font-bold italic">No upcoming holidays</p>
+        <div className="divide-y">
+          {upcomingHolidays.length > 0 ? (
+            upcomingHolidays.map((h, i) => (
+              <div key={i} className="px-4 py-3">
+                <div className="text-sm font-medium">
+                  {h.name}
                 </div>
-              )}
+                <div className="text-xs text-muted">
+                  {new Date(h.holiday_date).toDateString()}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="px-4 py-6 text-center text-muted text-sm">
+              No upcoming holidays
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
-  );
+  </div>
+);
+
 }
