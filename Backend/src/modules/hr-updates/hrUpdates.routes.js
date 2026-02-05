@@ -19,6 +19,14 @@ router.post(
   controller.create
 );
 
+router.put(
+  '/:id',
+  auth,
+  role('HR_ADMIN'),
+  upload.array('attachments', 5),
+  controller.update
+);
+
 router.delete('/:id', auth, role('HR_ADMIN'), controller.remove);
 
 module.exports = router;

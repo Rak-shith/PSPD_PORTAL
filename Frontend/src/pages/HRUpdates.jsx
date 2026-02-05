@@ -78,7 +78,7 @@ export default function HRUpdates() {
                   {update.attachments.map(att => (
                     <li key={att.id}>
                       <a
-                        href={att.file_path}
+                        href={`http://localhost:3000${att.file_path}`}
                         target="_blank"
                         rel="noreferrer"
                         className="text-itc-blue hover:underline text-sm"
