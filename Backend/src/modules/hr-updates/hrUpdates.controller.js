@@ -137,6 +137,7 @@ exports.update = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, content, start_date, end_date } = req.body;
+    const updatedBy = req.user?.employee_id || req.user?.employeeId;
     const pool = await poolPromise;
 
     // Update HR update
@@ -146,12 +147,15 @@ exports.update = async (req, res) => {
       .input('content', sql.Text, content)
       .input('start_date', sql.Date, start_date)
       .input('end_date', sql.Date, end_date)
+      .input('updatedBy', sql.VarChar, updatedBy)
       .query(`
         UPDATE hr_updates
         SET title = @title,
             content = @content,
             start_date = @start_date,
-            end_date = @end_date
+            end_date = @end_date,
+            updated_at = CURRENT_TIMESTAMP,
+            updated_by = @updatedBy
         WHERE id = @id
       `);
 

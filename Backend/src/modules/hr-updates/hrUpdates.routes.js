@@ -5,6 +5,8 @@ const controller = require('./hrUpdates.controller');
 const auth = require('../../middleware/auth.middleware');
 const role = require('../../middleware/role.middleware');
 const upload = require('../../utils/hrUpload');
+const { handleValidationErrors } = require('../../middleware/validation.middleware');
+const { hrUpdateValidation } = require('../../middleware/validation.rules');
 
 // Public (authenticated)
 router.get('/', auth, controller.getAll);
@@ -16,6 +18,8 @@ router.post(
   auth,
   role('HR_ADMIN'),
   upload.array('attachments', 5),
+  hrUpdateValidation,
+  handleValidationErrors,
   controller.create
 );
 
@@ -24,6 +28,8 @@ router.put(
   auth,
   role('HR_ADMIN'),
   upload.array('attachments', 5),
+  hrUpdateValidation,
+  handleValidationErrors,
   controller.update
 );
 

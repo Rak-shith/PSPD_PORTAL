@@ -1,18 +1,20 @@
 import { useEffect, useState } from 'react';
 import { getContacts } from '../api/contacts.api';
+import { useDebounce } from '../hooks/useDebounce';
 
 export default function Contacts() {
   const [contacts, setContacts] = useState([]);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
 
   const load = async () => {
-    const res = await getContacts(search);
+    const res = await getContacts(debouncedSearch);
     setContacts(res.data);
   };
 
   useEffect(() => {
     load();
-  }, []);
+  }, [debouncedSearch]);
 
   return (
     <div className="bg-itc-bg p-6 rounded-lg">
@@ -35,8 +37,17 @@ export default function Contacts() {
           placeholder="Search by name, designation or department"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          onKeyUp={load}
         />
+        {search && (
+          <button
+            onClick={() => setSearch('')}
+            className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Table */}

@@ -4,10 +4,13 @@ import { getCategories } from '../../api/categories.api';
 import { useToast } from '../../store/toast.store';
 import Modal from '../../components/common/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import ValidatedInput, { ValidatedTextarea } from '../../components/common/ValidatedInput';
+import { validateInput, sanitizeFormData } from '../../utils/validation';
 import api from '../../api/axios';
+import StatusBadge from '../../components/common/StatusBadge';
 
 export default function ApplicationsAdmin() {
-  const { showSuccess } = useToast();
+  const { showSuccess, showError } = useToast();
   const [apps, setApps] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,6 +24,8 @@ export default function ApplicationsAdmin() {
     image_url: '',
     category_id: ''
   });
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
   const load = async () => {
     const [appsRes, catRes] = await Promise.all([
@@ -44,6 +49,8 @@ export default function ApplicationsAdmin() {
       image_url: '',
       category_id: ''
     });
+    setErrors({});
+    setTouched({});
     setIsModalOpen(true);
   };
 
@@ -56,6 +63,8 @@ export default function ApplicationsAdmin() {
       image_url: app.image_url || '',
       category_id: app.category_id || categories.find(c => c.name === app.category)?.id || ''
     });
+    setErrors({});
+    setTouched({});
     setIsModalOpen(true);
   };
 
@@ -69,22 +78,76 @@ export default function ApplicationsAdmin() {
       image_url: '',
       category_id: ''
     });
+    setErrors({});
+    setTouched({});
+  };
+
+  const handleChange = (name, value) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (touched[name]) {
+      const ruleType = name === 'url' || name === 'image_url' ? 'url' : name === 'description' ? 'description' : 'name';
+      const validation = validateInput(value, ruleType);
+      setErrors(prev => ({ ...prev, [name]: validation.valid ? '' : validation.message }));
+    }
+  };
+
+  const handleBlur = (name) => {
+    setTouched(prev => ({ ...prev, [name]: true }));
+    const ruleType = name === 'url' || name === 'image_url' ? 'url' : name === 'description' ? 'description' : 'name';
+    const validation = validateInput(formData[name] || '', ruleType);
+    setErrors(prev => ({ ...prev, [name]: validation.valid ? '' : validation.message }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    const nameValidation = validateInput(formData.name, 'name');
+    if (!nameValidation.valid) newErrors.name = nameValidation.message;
+
+    if (formData.description) {
+      const descValidation = validateInput(formData.description, 'description');
+      if (!descValidation.valid) newErrors.description = descValidation.message;
+    }
+
+    const urlValidation = validateInput(formData.url, 'url');
+    if (!urlValidation.valid) newErrors.url = urlValidation.message;
+
+    if (formData.image_url) {
+      const imgValidation = validateInput(formData.image_url, 'url');
+      if (!imgValidation.valid) newErrors.image_url = imgValidation.message;
+    }
+
+    if (!formData.category_id) newErrors.category_id = 'Category is required';
+
+    setErrors(newErrors);
+    setTouched({ name: true, description: true, url: true, image_url: true, category_id: true });
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.url.trim() || !formData.category_id) return;
 
-    if (editingApp) {
-      await api.put(`/applications/${editingApp.id}`, formData);
-      showSuccess('Application updated successfully!');
-    } else {
-      await createApplication(formData);
-      showSuccess('Application created successfully!');
+    if (!validateForm()) {
+      showError('Please fix the validation errors');
+      return;
     }
 
-    closeModal();
-    load();
+    try {
+      const sanitizedData = sanitizeFormData(formData);
+
+      if (editingApp) {
+        await api.put(`/applications/${editingApp.id}`, sanitizedData);
+        showSuccess('Application updated successfully!');
+      } else {
+        await createApplication(sanitizedData);
+        showSuccess('Application created successfully!');
+      }
+
+      closeModal();
+      load();
+    } catch (error) {
+      showError(error.response?.data?.message || 'An error occurred');
+    }
   };
 
   const openDeleteDialog = (app) => {
@@ -100,8 +163,14 @@ export default function ApplicationsAdmin() {
     load();
   };
 
+  const handleToggleStatus = async (app) => {
+    await api.patch(`/applications/${app.id}/status`);
+    showSuccess(`Application ${app.is_active ? 'deactivated' : 'activated'} successfully!`);
+    load();
+  };
+
   return (
-    <div className="bg-itc-bg p-6 rounded-lg max-w-6xl">
+    <div className="bg-itc-bg p-6 rounded-lg max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -137,6 +206,9 @@ export default function ApplicationsAdmin() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 URL
               </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
@@ -144,7 +216,7 @@ export default function ApplicationsAdmin() {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {apps.map(app => (
-              <tr key={app.id} className="hover:bg-itc-bg transition-colors">
+              <tr key={app.id} className={`hover:bg-itc-bg transition-colors ${!app.is_active ? 'opacity-60' : ''}`}>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     {app.image_url && (
@@ -172,7 +244,22 @@ export default function ApplicationsAdmin() {
                     {app.url.length > 40 ? app.url.substring(0, 40) + '...' : app.url}
                   </a>
                 </td>
+                <td className="px-6 py-4">
+                  <StatusBadge isActive={app.is_active} />
+                </td>
                 <td className="px-6 py-4 text-right space-x-2">
+                  <button
+                    onClick={() => handleToggleStatus(app)}
+                    className={`inline-flex items-center px-3 py-1.5 border rounded-md text-sm font-medium transition-colors ${app.is_active
+                      ? 'border-orange-300 text-orange-700 bg-white hover:bg-orange-50'
+                      : 'border-green-300 text-green-700 bg-white hover:bg-green-50'
+                      }`}
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    {app.is_active ? 'Deactivate' : 'Activate'}
+                  </button>
                   <button
                     onClick={() => openEditModal(app)}
                     className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
@@ -214,29 +301,30 @@ export default function ApplicationsAdmin() {
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             {/* Application Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Application Name *
-              </label>
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-itc-blue/30"
-                placeholder="e.g., Employee Portal"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
-            </div>
+            <ValidatedInput
+              label="Application Name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              error={errors.name}
+              touched={touched.name}
+              placeholder="e.g., Employee Portal"
+              required
+              maxLength={150}
+            />
 
             {/* Category */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category *
+                Category <span className="text-red-500">*</span>
               </label>
               <select
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-itc-blue/30"
+                className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-itc-blue focus:border-transparent ${touched.category_id && errors.category_id ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 value={formData.category_id}
-                onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                onChange={(e) => handleChange('category_id', e.target.value)}
+                onBlur={() => handleBlur('category_id')}
                 required
               >
                 <option value="">Select Category</option>
@@ -246,50 +334,51 @@ export default function ApplicationsAdmin() {
                   </option>
                 ))}
               </select>
+              {touched.category_id && errors.category_id && (
+                <p className="mt-1 text-sm text-red-600">{errors.category_id}</p>
+              )}
             </div>
 
             {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                rows={3}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-itc-blue/30"
-                placeholder="Brief description of the application"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              />
-            </div>
+            <ValidatedTextarea
+              label="Description (Optional)"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              error={errors.description}
+              touched={touched.description}
+              placeholder="Brief description of the application"
+              maxLength={1000}
+              rows={3}
+            />
 
             {/* URL */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Application URL *
-              </label>
-              <input
-                type="url"
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-itc-blue/30"
-                placeholder="https://example.com"
-                value={formData.url}
-                onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                required
-              />
-            </div>
+            <ValidatedInput
+              label="Application URL"
+              name="url"
+              type="url"
+              value={formData.url}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              error={errors.url}
+              touched={touched.url}
+              placeholder="https://example.com"
+              required
+            />
 
             {/* Image URL */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image URL
-              </label>
-              <input
-                type="url"
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-itc-blue/30"
-                placeholder="https://example.com/icon.png"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-              />
-            </div>
+            <ValidatedInput
+              label="Image URL (Optional)"
+              name="image_url"
+              type="url"
+              value={formData.image_url}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              error={errors.image_url}
+              touched={touched.image_url}
+              placeholder="https://example.com/icon.png"
+            />
           </div>
 
           <div className="flex justify-end gap-3 mt-6">

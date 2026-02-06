@@ -112,7 +112,7 @@ export default function HRAdminUpdates() {
   };
 
   return (
-    <div className="bg-itc-bg p-6 rounded-lg max-w-6xl">
+    <div className="bg-itc-bg p-6 rounded-lg max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -267,8 +267,12 @@ export default function HRAdminUpdates() {
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-itc-blue/30"
                   value={formData.start_date}
                   onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                  min={new Date().toISOString().split('T')[0]}
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Only today or future dates
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -279,7 +283,11 @@ export default function HRAdminUpdates() {
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-itc-blue/30"
                   value={formData.end_date}
                   onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  min={formData.start_date || new Date().toISOString().split('T')[0]}
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Must be after start date
+                </p>
               </div>
             </div>
 

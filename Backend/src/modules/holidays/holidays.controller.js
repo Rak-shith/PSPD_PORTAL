@@ -2,6 +2,7 @@ const { poolPromise, sql } = require('../../config/db');
 
 exports.create = async (req, res) => {
   const { holiday_date, name, description, unit_ids } = req.body;
+  const createdBy = req.user?.employee_id || req.user?.employeeId;
   const pool = await poolPromise;
   const transaction = new sql.Transaction(pool);
 
@@ -12,10 +13,11 @@ exports.create = async (req, res) => {
       .input('holiday_date', sql.Date, holiday_date)
       .input('name', sql.VarChar, name)
       .input('description', sql.VarChar, description)
+      .input('createdBy', sql.VarChar, createdBy)
       .query(`
-        INSERT INTO holidays (holiday_date, name, description)
+        INSERT INTO holidays (holiday_date, name, description, created_by)
         OUTPUT INSERTED.id
-        VALUES (@holiday_date, @name, @description)
+        VALUES (@holiday_date, @name, @description, @createdBy)
       `);
 
     const holidayId = holidayResult.recordset[0].id;
@@ -43,6 +45,7 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   const { id } = req.params;
   const { holiday_date, name, description, unit_ids } = req.body;
+  const updatedBy = req.user?.employee_id || req.user?.employeeId;
   const pool = await poolPromise;
   const transaction = new sql.Transaction(pool);
 
@@ -55,11 +58,14 @@ exports.update = async (req, res) => {
       .input('holiday_date', sql.Date, holiday_date)
       .input('name', sql.VarChar, name)
       .input('description', sql.VarChar, description)
+      .input('updatedBy', sql.VarChar, updatedBy)
       .query(`
         UPDATE holidays
         SET holiday_date = @holiday_date,
             name = @name,
-            description = @description
+            description = @description,
+            updated_at = CURRENT_TIMESTAMP,
+            updated_by = @updatedBy
         WHERE id = @id
       `);
 

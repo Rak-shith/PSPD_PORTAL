@@ -109,7 +109,7 @@ export default function HolidaysAdmin() {
   };
 
   return (
-    <div className="bg-itc-bg p-6 rounded-lg max-w-6xl">
+    <div className="bg-itc-bg p-6 rounded-lg max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -236,8 +236,12 @@ export default function HolidaysAdmin() {
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-itc-blue/30"
                 value={formData.holiday_date}
                 onChange={(e) => setFormData({ ...formData, holiday_date: e.target.value })}
+                min={new Date().toISOString().split('T')[0]}
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Only future dates can be selected
+              </p>
             </div>
 
             {/* Holiday Name */}

@@ -16,6 +16,9 @@ import CategoriesAdmin from './pages/admin/Categories';
 import ApplicationsAdmin from './pages/admin/Applications';
 import AccessRequestsAdmin from './pages/admin/AccessRequests';
 import HolidaysAdmin from './pages/admin/Holidays';
+import ContactsAdmin from './pages/admin/ContactsAdmin';
+import SupportAdmin from './pages/admin/SupportAdmin';
+import UnitsAdmin from './pages/admin/UnitsAdmin';
 import Contacts from './pages/Contacts';
 import Support from './pages/Support';
 import AuthRedirect from './pages/AuthRedirect.jsx';
@@ -49,12 +52,15 @@ function App() {
                 <Route element={<ProtectedRoute roles={['HR_ADMIN']} />}>
                   <Route path="/admin/hr-updates" element={<HRAdminUpdates />} />
                   <Route path="/admin/holidays" element={<HolidaysAdmin />} />
+                  <Route path="/admin/categories" element={<CategoriesAdmin />} />
+                  <Route path="/admin/applications" element={<ApplicationsAdmin />} />
+                  <Route path="/admin/units" element={<UnitsAdmin />} />
                 </Route>
 
                 <Route element={<ProtectedRoute roles={['IT_ADMIN']} />}>
-                  <Route path="/admin/categories" element={<CategoriesAdmin />} />
-                  <Route path="/admin/applications" element={<ApplicationsAdmin />} />
                   <Route path="/admin/access-requests" element={<AccessRequestsAdmin />} />
+                  <Route path="/admin/contacts" element={<ContactsAdmin />} />
+                  <Route path="/admin/support" element={<SupportAdmin />} />
                 </Route>
 
                 {/* Fallback route */}

@@ -3,16 +3,23 @@ import { getCategories, createCategory } from '../../api/categories.api';
 import { useToast } from '../../store/toast.store';
 import Modal from '../../components/common/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import StatusBadge from '../../components/common/StatusBadge';
+import ValidatedInput from '../../components/common/ValidatedInput';
+import { validateInput, sanitizeFormData } from '../../utils/validation';
 import api from '../../api/axios';
 
 export default function CategoriesAdmin() {
-  const { showSuccess } = useToast();
+  const { showSuccess, showError } = useToast();
   const [categories, setCategories] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [deletingCategory, setDeletingCategory] = useState(null);
-  const [formData, setFormData] = useState({ name: '' });
+
+  // Form state with validation
+  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
   const load = async () => {
     const res = await getCategories();
@@ -25,38 +32,102 @@ export default function CategoriesAdmin() {
 
   const openCreateModal = () => {
     setEditingCategory(null);
-    setFormData({ name: '' });
+    setFormData({ name: '', description: '' });
+    setErrors({});
+    setTouched({});
     setIsModalOpen(true);
   };
 
   const openEditModal = (category) => {
     setEditingCategory(category);
-    setFormData({ name: category.name });
+    setFormData({
+      name: category.name || '',
+      description: category.description || ''
+    });
+    setErrors({});
+    setTouched({});
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingCategory(null);
-    setFormData({ name: '' });
+    setFormData({ name: '', description: '' });
+    setErrors({});
+    setTouched({});
+  };
+
+  const handleChange = (name, value) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+
+    // Validate on change if field has been touched
+    if (touched[name]) {
+      const ruleType = name === 'name' ? 'name' : 'description';
+      const validation = validateInput(value, ruleType);
+      setErrors(prev => ({ ...prev, [name]: validation.valid ? '' : validation.message }));
+    }
+  };
+
+  const handleBlur = (name) => {
+    setTouched(prev => ({ ...prev, [name]: true }));
+
+    // Validate on blur
+    const ruleType = name === 'name' ? 'name' : 'description';
+    const validation = validateInput(formData[name] || '', ruleType);
+    setErrors(prev => ({ ...prev, [name]: validation.valid ? '' : validation.message }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Validate name
+    const nameValidation = validateInput(formData.name, 'name');
+    if (!nameValidation.valid) {
+      newErrors.name = nameValidation.message;
+    }
+
+    // Validate description (optional but if provided, must be valid)
+    if (formData.description) {
+      const descValidation = validateInput(formData.description, 'description');
+      if (!descValidation.valid) {
+        newErrors.description = descValidation.message;
+      }
+    }
+
+    setErrors(newErrors);
+    setTouched({ name: true, description: true });
+
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
 
-    if (editingCategory) {
-      // Update
-      await api.put(`/categories/${editingCategory.id}`, formData);
-      showSuccess('Category updated successfully!');
-    } else {
-      // Create
-      await createCategory(formData);
-      showSuccess('Category created successfully!');
+    // Validate form
+    if (!validateForm()) {
+      showError('Please fix the validation errors');
+      return;
     }
 
-    closeModal();
-    load();
+    try {
+      // Sanitize form data before submission
+      const sanitizedData = sanitizeFormData(formData);
+
+      if (editingCategory) {
+        // Update
+        await api.put(`/categories/${editingCategory.id}`, sanitizedData);
+        showSuccess('Category updated successfully!');
+      } else {
+        // Create
+        await createCategory(sanitizedData);
+        showSuccess('Category created successfully!');
+      }
+
+      closeModal();
+      load();
+    } catch (error) {
+      showError(error.response?.data?.message || 'An error occurred');
+    }
   };
 
   const openDeleteDialog = (category) => {
@@ -72,8 +143,14 @@ export default function CategoriesAdmin() {
     load();
   };
 
+  const handleToggleStatus = async (category) => {
+    await api.patch(`/categories/${category.id}/status`);
+    showSuccess(`Category ${category.is_active ? 'deactivated' : 'activated'} successfully!`);
+    load();
+  };
+
   return (
-    <div className="bg-itc-bg p-6 rounded-lg max-w-5xl">
+    <div className="bg-itc-bg p-6 rounded-lg max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -103,6 +180,9 @@ export default function CategoriesAdmin() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Category Name
               </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
@@ -110,13 +190,28 @@ export default function CategoriesAdmin() {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {categories.map(category => (
-              <tr key={category.id} className="hover:bg-itc-bg transition-colors">
+              <tr key={category.id} className={`hover:bg-itc-bg transition-colors ${!category.is_active ? 'opacity-60' : ''}`}>
                 <td className="px-6 py-4">
                   <span className="font-medium text-itc-text-primary">
                     {category.name}
                   </span>
                 </td>
+                <td className="px-6 py-4">
+                  <StatusBadge isActive={category.is_active} />
+                </td>
                 <td className="px-6 py-4 text-right space-x-2">
+                  <button
+                    onClick={() => handleToggleStatus(category)}
+                    className={`inline-flex items-center px-3 py-1.5 border rounded-md text-sm font-medium transition-colors ${category.is_active
+                      ? 'border-orange-300 text-orange-700 bg-white hover:bg-orange-50'
+                      : 'border-green-300 text-green-700 bg-white hover:bg-green-50'
+                      }`}
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    {category.is_active ? 'Deactivate' : 'Activate'}
+                  </button>
                   <button
                     onClick={() => openEditModal(category)}
                     className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
@@ -156,20 +251,31 @@ export default function CategoriesAdmin() {
         size="sm"
       >
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category Name
-            </label>
-            <input
-              type="text"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-itc-blue/30"
-              placeholder="Enter category name"
-              value={formData.name}
-              onChange={(e) => setFormData({ name: e.target.value })}
-              required
-              autoFocus
-            />
-          </div>
+          <ValidatedInput
+            label="Category Name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.name}
+            touched={touched.name}
+            placeholder="Enter category name (e.g., IT Services)"
+            required
+            maxLength={100}
+            autoFocus
+          />
+
+          <ValidatedInput
+            label="Description (Optional)"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.description}
+            touched={touched.description}
+            placeholder="Brief description of the category"
+            maxLength={500}
+          />
 
           <div className="flex justify-end gap-3 mt-6">
             <button
